@@ -1,0 +1,82 @@
+{
+  "project_info": {
+    "project_number": "669468783122",
+    "project_id": "atrapa-cuadro",
+    "storage_bucket": "atrapa-cuadro.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:669468783122:android:5f9ee13c772d5fc8249ecb",
+        "android_client_info": {
+          "package_name": "com.example.examen"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "669468783122-v7d5ue94b1mqe74tvlmt7arlhtv115q6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDgip8Lg0AQUeRKmbN3XkEVpJB8Zvjx1XU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "669468783122-v7d5ue94b1mqe74tvlmt7arlhtv115q6.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "669468783122-0u39p7maj1qho23pjm0qnt71iet93r0v.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.examen"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:669468783122:android:febaa33c7363e570249ecb",
+        "android_client_info": {
+          "package_name": "com.paulo.atrapacuadros"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "669468783122-v7d5ue94b1mqe74tvlmt7arlhtv115q6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDgip8Lg0AQUeRKmbN3XkEVpJB8Zvjx1XU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "669468783122-v7d5ue94b1mqe74tvlmt7arlhtv115q6.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "669468783122-0u39p7maj1qho23pjm0qnt71iet93r0v.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.examen"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
