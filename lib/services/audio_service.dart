@@ -16,21 +16,25 @@ class AudioService extends ChangeNotifier {
   // ─── Musica de fondo ───────────────────────────────────────────
 
   Future<void> playMusicaLobby() async {
-    await _detenerMusica();
-    _musicPlayer = AudioPlayer();
-    await _musicPlayer!.setSource(AssetSource('sounds/lobby_music.mp3'));
-    await _musicPlayer!.setVolume(_volumenMusica);
-    await _musicPlayer!.setReleaseMode(ReleaseMode.loop);
-    await _musicPlayer!.resume();
+    try {
+      await _detenerMusica();
+      _musicPlayer = AudioPlayer();
+      await _musicPlayer!.setSource(AssetSource('sounds/lobby_music.mp3'));
+      await _musicPlayer!.setVolume(_volumenMusica);
+      await _musicPlayer!.setReleaseMode(ReleaseMode.loop);
+      await _musicPlayer!.resume();
+    } catch (_) {}
   }
 
   Future<void> playMusicaJuego() async {
-    await _detenerMusica();
-    _musicPlayer = AudioPlayer();
-    await _musicPlayer!.setSource(AssetSource('sounds/game_music.mp3'));
-    await _musicPlayer!.setVolume(_volumenMusica);
-    await _musicPlayer!.setReleaseMode(ReleaseMode.loop);
-    await _musicPlayer!.resume();
+    try {
+      await _detenerMusica();
+      _musicPlayer = AudioPlayer();
+      await _musicPlayer!.setSource(AssetSource('sounds/game_music.mp3'));
+      await _musicPlayer!.setVolume(_volumenMusica);
+      await _musicPlayer!.setReleaseMode(ReleaseMode.loop);
+      await _musicPlayer!.resume();
+    } catch (_) {}
   }
 
   Future<void> _detenerMusica() async {
@@ -62,10 +66,12 @@ class AudioService extends ChangeNotifier {
   }
 
   Future<void> _playEfecto(String asset) async {
-    await _sfxPlayer.stop();
-    await _sfxPlayer.setSource(AssetSource(asset));
-    await _sfxPlayer.setVolume(_volumenEfectos);
-    await _sfxPlayer.resume();
+    try {
+      await _sfxPlayer.stop();
+      await _sfxPlayer.setSource(AssetSource(asset));
+      await _sfxPlayer.setVolume(_volumenEfectos);
+      await _sfxPlayer.resume();
+    } catch (_) {}
   }
 
   // ─── Control de volumen ────────────────────────────────────────

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../services/audio_service.dart';
@@ -42,12 +43,8 @@ class _LoginScreenState extends State<LoginScreen> {
       await authProv.iniciarSesion(_emailCtrl.text.trim(), _passCtrl.text.trim());
     }
 
-    if (mounted && authProv.error == null) {
-      // Esperar a que el listener del stream cargue los datos del usuario
-      await Future.delayed(const Duration(milliseconds: 500));
-      if (mounted && authProv.estaAutenticado) {
-        Navigator.pushReplacementNamed(context, '/menu');
-      }
+    if (mounted && authProv.error == null && authProv.estaAutenticado) {
+      Navigator.pushReplacementNamed(context, '/menu');
     }
   }
 
@@ -152,46 +149,54 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   const SizedBox(height: 16),
                   // Boton Google
-                  GestureDetector(
-                    onTap: authProv.cargando
-                        ? null
-                        : () async {
-                            context.read<AudioService>().playEfectoClick();
-                            await context
-                                .read<AuthAppProvider>()
-                                .iniciarSesionConGoogle();
-                          },
-                    child: Container(
-                      width: 240,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        border: Border.all(color: Colors.black, width: 3),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Colors.black,
-                            offset: Offset(5, 5),
-                            blurRadius: 0,
-                          ),
-                        ],
-                      ),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.g_mobiledata, color: Colors.red, size: 32),
-                          SizedBox(width: 8),
-                          Text(
-                            'GOOGLE',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                  // GestureDetector(
+                  //   onTap: authProv.cargando
+                  //       ? null
+                  //       : () async {
+                  //           context.read<AudioService>().playEfectoClick();
+                  //           final nav = Navigator.of(context);
+                  //           final ok = await context
+                  //               .read<AuthAppProvider>()
+                  //               .iniciarSesionConGoogle();
+                  //           if (ok && mounted) {
+                  //             nav.pushReplacementNamed('/menu');
+                  //           }
+                  //         },
+                  //   child: Container(
+                  //     width: 240,
+                  //     padding: const EdgeInsets.symmetric(vertical: 14),
+                  //     decoration: BoxDecoration(
+                  //       color: Colors.white,
+                  //       border: Border.all(color: Colors.black, width: 3),
+                  //       boxShadow: const [
+                  //         BoxShadow(
+                  //           color: Colors.black,
+                  //           offset: Offset(5, 5),
+                  //           blurRadius: 0,
+                  //         ),
+                  //       ],
+                  //     ),
+                  //     child: Row(
+                  //       mainAxisAlignment: MainAxisAlignment.center,
+                  //       children: [
+                  //         SvgPicture.asset(
+                  //           'assets/google-icon-logo.svg',
+                  //           width: 24,
+                  //           height: 24,
+                  //         ),
+                  //         const SizedBox(width: 8),
+                  //         const Text(
+                  //           'GOOGLE',
+                  //           style: TextStyle(
+                  //             fontSize: 18,
+                  //             fontWeight: FontWeight.bold,
+                  //             color: Colors.black87,
+                  //           ),
+                  //         ),
+                  //       ],
+                  //     ),
+                  //   ),
+                  // ),
                   const SizedBox(height: 16),
                   // Boton enviar
                   GestureDetector(

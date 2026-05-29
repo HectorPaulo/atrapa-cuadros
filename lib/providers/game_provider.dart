@@ -7,24 +7,32 @@ enum EstadoJuego { inicio, jugando, pausado, victoria, gameOver }
 
 class GameProvider extends ChangeNotifier {
   static const int _vidasIniciales = 3;
-  static const int _puntajeVictoria = 30;
-  static const double _tiempoInicial = 2.0;
-  static const double _tiempoMinimo = 0.4;
-  static const double _factorReduccion = 0.05;
+  static const int _totalRondas = 5;
+  static const List<int> _rondasObjetivos = [5, 8, 10, 12, 15];
+  static const List<double> _rondasTiempos = [2.0, 1.6, 1.3, 1.0, 0.7];
+  static const List<double> _rondasTamanos = [80, 70, 60, 50, 42];
+  static const double _tiempoTransicion = 1.5;
+  static const int puntajeVictoria = 50;
 
   EstadoJuego _estado = EstadoJuego.inicio;
   int _puntaje = 0;
   int _vidas = _vidasIniciales;
-  double _tiempoAparecer = _tiempoInicial;
+  double _tiempoAparecer = _rondasTiempos[0];
   Offset _posicionCuadro = Offset.zero;
-  double _tamanoCuadro = 80;
+  double _tamanoCuadro = _rondasTamanos[0];
   int _highScore = 0;
   Timer? _timerCuadro;
   String _nombreUsuario = 'Jugador';
   Color _colorJugador = Colors.red;
   final Random _random = Random();
+  Size _ultimoTamano = Size.zero;
 
-  // Callbacks opcionales para efectos de sonido
+  int _ronda = 1;
+  int _puntajeEnRonda = 0;
+  int _combo = 0;
+  int _maxCombo = 0;
+  bool _enTransicionRonda = false;
+
   VoidCallback? onPerderVida;
   VoidCallback? onGameOver;
 
@@ -37,7 +45,13 @@ class GameProvider extends ChangeNotifier {
   int get highScore => _highScore;
   String get nombreUsuario => _nombreUsuario;
   Color get colorJugador => _colorJugador;
-  static int get puntajeVictoria => _puntajeVictoria;
+  int get ronda => _ronda;
+  int get combo => _combo;
+  int get maxCombo => _maxCombo;
+  int get puntajeEnRonda => _puntajeEnRonda;
+  bool get enTransicionRonda => _enTransicionRonda;
+  int get totalRondas => _totalRondas;
+  int get objetivoRondaActual => _rondasObjetivos[_ronda - 1];
 
   void setNombreUsuario(String nombre) {
     _nombreUsuario = nombre;
@@ -67,7 +81,14 @@ class GameProvider extends ChangeNotifier {
     _estado = EstadoJuego.jugando;
     _puntaje = 0;
     _vidas = _vidasIniciales;
-    _tiempoAparecer = _tiempoInicial;
+    _ronda = 1;
+    _puntajeEnRonda = 0;
+    _combo = 0;
+    _maxCombo = 0;
+    _enTransicionRonda = false;
+    _tiempoAparecer = _rondasTiempos[0];
+    _tamanoCuadro = _rondasTamanos[0];
+    _ultimoTamano = tamanoPantalla;
     _generarPosicion(tamanoPantalla);
     notifyListeners();
     _iniciarTimer();
@@ -76,7 +97,7 @@ class GameProvider extends ChangeNotifier {
   void _iniciarTimer() {
     _timerCuadro?.cancel();
     _timerCuadro = Timer(Duration(milliseconds: (_tiempoAparecer * 1000).toInt()), () {
-      if (_estado == EstadoJuego.jugando) {
+      if (_estado == EstadoJuego.jugando && !_enTransicionRonda) {
         _perderVida();
       }
     });
@@ -94,29 +115,57 @@ class GameProvider extends ChangeNotifier {
   }
 
   void tocarCuadro(Size tamanoPantalla) {
-    if (_estado != EstadoJuego.jugando) return;
+    if (_estado != EstadoJuego.jugando || _enTransicionRonda) return;
 
     _timerCuadro?.cancel();
-    _puntaje++;
+
+    _combo++;
+    if (_combo > _maxCombo) _maxCombo = _combo;
+
+    final bonus = (_combo ~/ 5).clamp(0, 2);
+    final puntosGanados = 1 + bonus;
+    _puntaje += puntosGanados;
+    _puntajeEnRonda++;
+    _ultimoTamano = tamanoPantalla;
     notifyListeners();
 
-    if (_puntaje >= _puntajeVictoria) {
-      _estado = EstadoJuego.victoria;
-      _guardarHighScore();
-      notifyListeners();
+    if (_puntajeEnRonda >= _rondasObjetivos[_ronda - 1]) {
+      _completarRonda();
       return;
     }
 
-    _tiempoAparecer = (_tiempoInicial - (_puntaje * _factorReduccion))
-        .clamp(_tiempoMinimo, _tiempoInicial);
-    _tamanoCuadro = (80 - (_puntaje * 1.2)).clamp(40, 80).toDouble();
     _generarPosicion(tamanoPantalla);
     notifyListeners();
     _iniciarTimer();
   }
 
+  void _completarRonda() {
+    _timerCuadro?.cancel();
+    _enTransicionRonda = true;
+    notifyListeners();
+
+    Future.delayed(Duration(milliseconds: (_tiempoTransicion * 1000).toInt()), () {
+      if (_ronda >= _totalRondas) {
+        _estado = EstadoJuego.victoria;
+        _enTransicionRonda = false;
+        _guardarHighScore();
+        notifyListeners();
+      } else {
+        _ronda++;
+        _puntajeEnRonda = 0;
+        _tiempoAparecer = _rondasTiempos[_ronda - 1];
+        _tamanoCuadro = _rondasTamanos[_ronda - 1];
+        _enTransicionRonda = false;
+        _generarPosicion(_ultimoTamano);
+        notifyListeners();
+        _iniciarTimer();
+      }
+    });
+  }
+
   void _perderVida() {
     _vidas--;
+    _combo = 0;
     onPerderVida?.call();
     notifyListeners();
 
@@ -128,10 +177,16 @@ class GameProvider extends ChangeNotifier {
       return;
     }
 
-    _tiempoAparecer = _tiempoInicial;
-    _tamanoCuadro = 80;
+    _tiempoAparecer = _rondasTiempos[_ronda - 1];
+    _tamanoCuadro = _rondasTamanos[_ronda - 1];
     notifyListeners();
     _iniciarTimer();
+  }
+
+  void tocarFuera() {
+    if (_estado != EstadoJuego.jugando || _enTransicionRonda) return;
+    _timerCuadro?.cancel();
+    _perderVida();
   }
 
   void pausar() {
@@ -158,8 +213,13 @@ class GameProvider extends ChangeNotifier {
     _estado = EstadoJuego.inicio;
     _puntaje = 0;
     _vidas = _vidasIniciales;
-    _tiempoAparecer = _tiempoInicial;
-    _tamanoCuadro = 80;
+    _ronda = 1;
+    _puntajeEnRonda = 0;
+    _combo = 0;
+    _maxCombo = 0;
+    _enTransicionRonda = false;
+    _tiempoAparecer = _rondasTiempos[0];
+    _tamanoCuadro = _rondasTamanos[0];
     notifyListeners();
   }
 

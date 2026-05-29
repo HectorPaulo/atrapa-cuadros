@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import '../services/auth_service.dart';
 import '../services/firestore_service.dart';
 import '../models/user_model.dart';
@@ -12,6 +14,8 @@ class AuthAppProvider extends ChangeNotifier {
   bool _cargando = false;
   String? _error;
 
+  Completer<void>? _completerCarga;
+
   Usuario? get usuario => _usuario;
   bool get cargando => _cargando;
   String? get error => _error;
@@ -19,22 +23,47 @@ class AuthAppProvider extends ChangeNotifier {
 
   AuthAppProvider() {
     _authService.usuarioStream.listen((User? user) async {
-      if (user != null) {
-        _cargando = true;
-        notifyListeners();
-        final u = await _firestoreService.obtenerUsuario(user.uid);
-        if (u != null) {
-          _usuario = u;
+      try {
+        if (user != null) {
+          _cargando = true;
+          notifyListeners();
+          final u = await _firestoreService.obtenerUsuario(user.uid);
+          if (u != null) {
+            _usuario = u;
+          } else {
+            _usuario = Usuario(uid: user.uid, email: user.email ?? '');
+            await _firestoreService.guardarUsuario(_usuario!);
+          }
         } else {
-          _usuario = Usuario(uid: user.uid, email: user.email ?? '');
-          await _firestoreService.guardarUsuario(_usuario!);
+          _usuario = null;
         }
-      } else {
-        _usuario = null;
+      } catch (e) {
+        debugPrint('AuthProvider: error en stream listener: $e');
+        if (user != null) {
+          _usuario = Usuario(uid: user.uid, email: user.email ?? '');
+        }
       }
       _cargando = false;
       notifyListeners();
+      _completerCarga?.complete();
+      _completerCarga = null;
     });
+  }
+
+  Future<void> _esperarCargaCompleta() async {
+    if (_usuario != null) return;
+    _completerCarga = Completer<void>();
+    try {
+      await _completerCarga!.future.timeout(const Duration(seconds: 8));
+    } on TimeoutException {
+      debugPrint('AuthProvider: timeout esperando carga de usuario');
+      _completerCarga = null;
+      final current = _authService.usuarioActual;
+      if (current != null && _usuario == null) {
+        _usuario = Usuario(uid: current.uid, email: current.email ?? '');
+        notifyListeners();
+      }
+    }
   }
 
   Future<void> registrar(String email, String password) async {
@@ -42,11 +71,15 @@ class AuthAppProvider extends ChangeNotifier {
     _error = null;
     notifyListeners();
     try {
-      await _authService.registrar(email, password);
+      final cred = await _authService.registrar(email, password);
+      debugPrint('AuthProvider: registro exitoso uid=${cred.user?.uid}');
+      await _esperarCargaCompleta();
     } on FirebaseAuthException catch (e) {
       _error = e.message;
+      debugPrint('AuthProvider: error registro Firebase: $e');
     } catch (e) {
       _error = 'Error al registrar';
+      debugPrint('AuthProvider: error registro: $e');
     }
     _cargando = false;
     notifyListeners();
@@ -57,30 +90,51 @@ class AuthAppProvider extends ChangeNotifier {
     _error = null;
     notifyListeners();
     try {
-      await _authService.iniciarSesion(email, password);
+      final cred = await _authService.iniciarSesion(email, password);
+      debugPrint('AuthProvider: login exitoso uid=${cred.user?.uid}');
+      await _esperarCargaCompleta();
     } on FirebaseAuthException catch (e) {
       _error = e.message;
+      debugPrint('AuthProvider: error login Firebase: $e');
     } catch (e) {
       _error = 'Error al iniciar sesion';
+      debugPrint('AuthProvider: error login: $e');
     }
     _cargando = false;
     notifyListeners();
   }
 
-  Future<void> iniciarSesionConGoogle() async {
+  Future<bool> iniciarSesionConGoogle() async {
     _cargando = true;
     _error = null;
     notifyListeners();
     try {
-      final credencial = await _authService.iniciarSesionConGoogle();
-      if (credencial == null) {
-        _error = 'Inicio de sesion cancelado';
+      await _authService.iniciarSesionConGoogle();
+      debugPrint('AuthProvider: Google sign-in exitoso, esperando carga...');
+      await _esperarCargaCompleta();
+      debugPrint(
+          'AuthProvider: carga completa, autenticado=${_usuario != null}');
+      _cargando = false;
+      notifyListeners();
+      return true;
+    } on GoogleSignInException catch (e) {
+      debugPrint('AuthProvider: GoogleSignInException code=${e.code} msg=$e');
+      if (e.code == GoogleSignInExceptionCode.canceled ||
+          e.code == GoogleSignInExceptionCode.interrupted) {
+        _error = null;
+      } else {
+        _error = 'Error en Google: ${e.code}';
       }
+      _cargando = false;
+      notifyListeners();
+      return false;
     } catch (e) {
+      debugPrint('AuthProvider: error Google sign-in: $e');
       _error = 'Error al iniciar sesion con Google';
+      _cargando = false;
+      notifyListeners();
+      return false;
     }
-    _cargando = false;
-    notifyListeners();
   }
 
   Future<void> cerrarSesion() async {

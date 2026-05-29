@@ -24,7 +24,9 @@ class DefaultFirebaseOptions {
       case TargetPlatform.windows:
       case TargetPlatform.linux:
       case TargetPlatform.fuchsia:
-        return windows;
+        throw UnsupportedError(
+          'DefaultFirebaseOptions no estan configurados para esta plataforma.',
+        );
     }
   }
 
@@ -39,7 +41,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyDgip8Lg0AQUeRKmbN3XkEVpJB8Zvjx1XU',
-    appId: '1:669468783122:android:5f9ee13c772d5fc8249ecb',
+    appId: '1:669468783122:android:febaa33c7363e570249ecb',
     messagingSenderId: '669468783122',
     projectId: 'atrapa-cuadro',
     storageBucket: 'atrapa-cuadro.firebasestorage.app',
@@ -66,14 +68,4 @@ class DefaultFirebaseOptions {
     iosClientId: '669468783122-0u39p7maj1qho23pjm0qnt71iet93r0v.apps.googleusercontent.com',
     iosBundleId: 'com.example.examen',
   );
-
-  static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyCjPhvcD5rwKQife_ZS8ZYYNH0GZS0Wm2k',
-    appId: '1:669468783122:web:44a92e7a2e061854249ecb',
-    messagingSenderId: '669468783122',
-    projectId: 'atrapa-cuadro',
-    authDomain: 'atrapa-cuadro.firebaseapp.com',
-    storageBucket: 'atrapa-cuadro.firebasestorage.app',
-  );
-
 }

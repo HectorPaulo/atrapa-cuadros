@@ -4,8 +4,6 @@ import 'package:google_sign_in/google_sign_in.dart';
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-
-
   Stream<User?> get usuarioStream => _auth.authStateChanges();
 
   User? get usuarioActual => _auth.currentUser;
@@ -24,20 +22,19 @@ class AuthService {
     );
   }
 
-  Future<UserCredential?> iniciarSesionConGoogle() async {
-    try {
-      final GoogleSignInAccount googleUser =
-          await GoogleSignIn.instance.authenticate();
-      final GoogleSignInAuthentication googleAuth = googleUser.authentication;
+  /// Retorna el UserCredential si el login fue exitoso.
+  /// Lanza [GoogleSignInException] si el usuario cancelo (code: canceled).
+  /// Lanza cualquier otra excepcion en caso de error real.
+  Future<UserCredential> iniciarSesionConGoogle() async {
+    final GoogleSignInAccount googleUser =
+        await GoogleSignIn.instance.authenticate();
+    final GoogleSignInAuthentication googleAuth = googleUser.authentication;
 
-      final AuthCredential credential = GoogleAuthProvider.credential(
-        idToken: googleAuth.idToken,
-      );
+    final AuthCredential credential = GoogleAuthProvider.credential(
+      idToken: googleAuth.idToken,
+    );
 
-      return await _auth.signInWithCredential(credential);
-    } catch (e) {
-      return null;
-    }
+    return await _auth.signInWithCredential(credential);
   }
 
   Future<void> cerrarSesion() async {

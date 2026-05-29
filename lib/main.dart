@@ -9,6 +9,13 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  await GoogleSignIn.instance.initialize();
+  try {
+    await GoogleSignIn.instance.initialize(
+      serverClientId: '669468783122-v7d5ue94b1mqe74tvlmt7arlhtv115q6.apps.googleusercontent.com',
+    );
+    debugPrint('main: GoogleSignIn inicializado correctamente');
+  } catch (e) {
+    debugPrint('main: error al inicializar GoogleSignIn: $e');
+  }
   runApp(const App());
 }

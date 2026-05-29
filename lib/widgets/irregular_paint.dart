@@ -44,24 +44,22 @@ class _PoligonoPainter extends CustomPainter {
       ..style = PaintingStyle.fill;
 
     final random = Random(42);
-    final path = Path();
     final puntos = 6 + random.nextInt(4);
     final cx = size.width / 2;
     final cy = size.height / 2;
     final radio = size.width / 2;
 
+    final vertices = <Offset>[];
     for (int i = 0; i < puntos; i++) {
       final angulo = (2 * pi * i / puntos) + (random.nextDouble() - 0.5) * 0.8;
       final dist = radio * (0.6 + random.nextDouble() * 0.4);
-      final x = cx + dist * cos(angulo);
-      final y = cy + dist * sin(angulo);
-      if (i == 0) {
-        path.moveTo(x, y);
-      } else {
-        path.lineTo(x, y);
-      }
+      vertices.add(Offset(
+        cx + dist * cos(angulo),
+        cy + dist * sin(angulo),
+      ));
     }
-    path.close();
+
+    final path = _poligonoRedondeado(vertices, tamanio: 18);
     canvas.drawPath(path, paint);
 
     final paintBorde = Paint()
@@ -69,6 +67,45 @@ class _PoligonoPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3;
     canvas.drawPath(path, paintBorde);
+  }
+
+  /// Version local que recibe [tamanio] como el radio de redondeo.
+  Path _poligonoRedondeado(List<Offset> pts, {required double tamanio}) {
+    if (pts.length < 3) return Path()..addPolygon(pts, true);
+    final path = Path();
+    final n = pts.length;
+    final r = min(tamanio, 20.0);
+
+    for (int i = 0; i < n; i++) {
+      final a = pts[(i - 1 + n) % n];
+      final b = pts[i];
+      final c = pts[(i + 1) % n];
+
+      final ab = (a - b);
+      final cb = (c - b);
+      final dAB = ab.distance;
+      final dCB = cb.distance;
+
+      if (dAB < 0.001 || dCB < 0.001) {
+        path.lineTo(b.dx, b.dy);
+        continue;
+      }
+
+      final abN = ab / dAB;
+      final cbN = cb / dCB;
+      final radioEfectivo = min(r, min(dAB, dCB) * 0.4);
+      final pIn = b + abN * radioEfectivo;
+      final pOut = b + cbN * radioEfectivo;
+
+      if (i == 0) {
+        path.moveTo(pIn.dx, pIn.dy);
+      } else {
+        path.lineTo(pIn.dx, pIn.dy);
+      }
+      path.quadraticBezierTo(b.dx, b.dy, pOut.dx, pOut.dy);
+    }
+    path.close();
+    return path;
   }
 
   @override
@@ -102,33 +139,62 @@ class _ManchaPainter extends CustomPainter {
       ..style = PaintingStyle.fill;
 
     final random = Random(42);
-    final path = Path();
     final cx = size.width / 2;
     final cy = size.height / 2;
     final radio = size.width / 2;
     final puntos = 10;
 
+    final vertices = <Offset>[];
     for (int i = 0; i <= puntos; i++) {
       final angulo = 2 * pi * i / puntos;
       final dist = radio * (0.4 + random.nextDouble() * 0.6);
-      final x = cx + dist * cos(angulo);
-      final y = cy + dist * sin(angulo);
-      if (i == 0) {
-        path.moveTo(x, y);
-      } else {
-        final anguloAnt = 2 * pi * (i - 1) / puntos;
-        final distAnt = radio * (0.4 + random.nextDouble() * 0.6);
-        final cx1 = cx + distAnt * cos(anguloAnt + 0.3);
-        final cy1 = cy + distAnt * sin(anguloAnt + 0.3);
-        final anguloSig = 2 * pi * (i + 1) / puntos;
-        final distSig = radio * (0.4 + random.nextDouble() * 0.6);
-        final cx2 = cx + distSig * cos(anguloSig - 0.3);
-        final cy2 = cy + distSig * sin(anguloSig - 0.3);
-        path.cubicTo(cx1, cy1, cx2, cy2, x, y);
+      vertices.add(Offset(
+        cx + dist * cos(angulo),
+        cy + dist * sin(angulo),
+      ));
+    }
+
+    // Usar el mismo redondeo para las manchas (curvas mas suaves)
+    final pathRedondeado = _poligonoRedondeado(vertices, tamanio: 24);
+    canvas.drawPath(pathRedondeado, paint);
+  }
+
+  Path _poligonoRedondeado(List<Offset> pts, {required double tamanio}) {
+    if (pts.length < 3) return Path()..addPolygon(pts, true);
+    final path = Path();
+    final n = pts.length;
+    final r = min(tamanio, 30.0);
+
+    for (int i = 0; i < n; i++) {
+      final a = pts[(i - 1 + n) % n];
+      final b = pts[i];
+      final c = pts[(i + 1) % n];
+
+      final ab = (a - b);
+      final cb = (c - b);
+      final dAB = ab.distance;
+      final dCB = cb.distance;
+
+      if (dAB < 0.001 || dCB < 0.001) {
+        path.lineTo(b.dx, b.dy);
+        continue;
       }
+
+      final abN = ab / dAB;
+      final cbN = cb / dCB;
+      final radioEfectivo = min(r, min(dAB, dCB) * 0.4);
+      final pIn = b + abN * radioEfectivo;
+      final pOut = b + cbN * radioEfectivo;
+
+      if (i == 0) {
+        path.moveTo(pIn.dx, pIn.dy);
+      } else {
+        path.lineTo(pIn.dx, pIn.dy);
+      }
+      path.quadraticBezierTo(b.dx, b.dy, pOut.dx, pOut.dy);
     }
     path.close();
-    canvas.drawPath(path, paint);
+    return path;
   }
 
   @override

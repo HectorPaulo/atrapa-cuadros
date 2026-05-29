@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import '../providers/game_provider.dart';
 import '../providers/auth_provider.dart';
@@ -56,7 +57,18 @@ class _MenuScreenState extends State<MenuScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: 100,
+                height: 100,
+                child: Lottie.asset(
+                  'assets/b80c8f58-1166-11ee-bad3-8fb1e44c9ce0.json',
+                  repeat: true,
+                  animate: true,
+                  fit: BoxFit.contain,
+                ),
+              ),
+              const SizedBox(height: 16),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 decoration: BoxDecoration(

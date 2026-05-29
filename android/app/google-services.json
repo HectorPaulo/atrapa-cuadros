@@ -50,6 +50,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "669468783122-a9fv9odvoesncn95fe5j71d9me0r85hh.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.paulo.atrapacuadros",
+            "certificate_hash": "05248c80385c23ea4ac1d44db1e722fb57d80aed"
+          }
+        },
+        {
           "client_id": "669468783122-v7d5ue94b1mqe74tvlmt7arlhtv115q6.apps.googleusercontent.com",
           "client_type": 3
         }

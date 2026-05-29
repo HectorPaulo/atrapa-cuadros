@@ -77,7 +77,17 @@ class _VictoryScreenState extends State<VictoryScreen> {
                     color: Colors.white,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 4),
+                if (gameProv.maxCombo > 1)
+                  Text(
+                    'Mejor combo: x${gameProv.maxCombo}',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.orange,
+                    ),
+                  ),
+                const SizedBox(height: 4),
                 Text(
                   'High Score: ${gameProv.highScore}',
                   style: const TextStyle(
